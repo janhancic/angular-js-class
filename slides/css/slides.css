@@ -1,0 +1,20 @@
+.reveal section img {
+  background: none;
+}
+.reveal .code-sample {
+  margin-top: 1em;
+}
+.code-sample code {
+  font-size: 1.5rem;
+  white-space: pre-wrap;
+  background: #dfdfdf;
+  display: block;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+.reveal h1 code,
+.reveal h2 code,
+.reveal h3 code,
+.reveal h4 code {
+  text-transform: none;
+}

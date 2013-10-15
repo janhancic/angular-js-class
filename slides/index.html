@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">  
+    <title>AngularJS</title>
+    <link rel="stylesheet" href="reveal/css/reveal.css">
+    <link rel="stylesheet" href="reveal/css/theme/solarized.css" id="theme">
+    <!-- <link rel="stylesheet" href="reveal/css/print/pdf.css"> -->
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- For syntax highlighting reveal/-->
+    <link rel="stylesheet" href="reveal/lib/css/zenburn.css">
+    <link rel="stylesheet" href="css/slides.css">
+</head>
+
+<body ng-app=slides>
+
+<div class="reveal">
+<div class="slides">
+
+<section data-markdown data-state="highlight"><script type="text/template">
+
+  # AngularJS
+  ![shield](img/angular-shield.svg)
+
+  ### @timruffles
+  ### sidekickjs.com
+
+</script>
+</section>
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  # Todo
+
+  - Impression of Angular
+  - Philosophy: goals, non-goals
+  - Guide to Angular + exercises
+  - Rebuild the little example app
+
+</script></section>
+
+<section>
+  
+  <script type=cs code-sample>
+    <h2>HTML {{ verb }} for web apps!</h2>
+    <input ng-model='verb' ng-init='verb = "enhanced"' />
+  </script>
+
+</section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Impression
+
+  - data-binding
+  - custom markup - like Dojo
+  - very little Javascript (code example was complete)
+  - back to Javascript in HTML
+
+</script></section>
+
+<section>
+  
+  <script type=cs code-sample>
+    <h2>Slide on ng, in ng</h2>
+    <ul ng-init='thoughts = ["ng - WTH?","bit magic","performance?","expressive"]'>
+      <li ng-repeat='thought in thoughts'>
+        {{ thought }}
+        <a ng-click='thoughts.splice(thoughts.indexOf(thought),1)'>X</a>
+      </li>
+    </ul>
+  </script>
+
+</section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Goals
+
+  - build out from HTML, not expand JS's job
+  - radical testability - no untestable bits
+  - 'just Javascript' for model layer
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  ## Solutions
+
+  - extensions to HTML - what you've seen - via directives
+  - dependency injection container as module system
+  - change watching, not events (like Backbone etc)
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+
+  ## MVC
+
+  - model: what your app does for users
+  - view: interative representation of model
+  - controller: glue
+  - key: seperate what your app does/is: model, how: view + controller
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+
+  ## Angular's MVC
+
+  - model: your Javascript, watched by Angular
+  - view: HTML extended via directives
+  - controller: Javascript to glue views to models
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+
+  ## How is Angular different?
+
+  - to jQuery/flat JS: much less DOM manipulation, more structure
+  - to Backbone: less DOM manipulation, larger goals
+  - to Ember: change watching instead of events
+  - to old-style JS in HTML: scoped, not arbitrary JS
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+
+  ## Let's take a look
+
+</script></section>
+
+
+<section>
+
+  <h2>First M, V & C</h2>
+
+  <script type=code-sample code-sample>
+    <div ng-controller=clicking>
+      <button ng-click=clicked()>Click me</button>
+      <p>You've clicked the button {{counter.clicks}} times.</p>
+    </div>
+    <code class=controller>
+      module.controller('clicking',function($scope) {
+        $scope.counter = {clicks: 0};
+        $scope.clicked = function() {
+          $scope.counter.clicks += 1;
+        }
+      })
+    </code>
+  </script>
+
+</section>
+
+<section data-markdown><script type="text/template">
+
+  ## What's going on?
+
+  - We've added `ng-click` and `{{ }}` for data-binding
+  - We've defined a 'model': `{clicks: 0}`
+  - We've defined a function to glue UI interaction to model changes
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+
+  ## So how does it work?
+
+  - Angular has compiled our views - see our additions
+  - Has created scopes: object to data-bind on
+  - attached all directives from compilation to scopes
+  - watched model for changes, updated DOM
+
+</script></section>
+
+<section>
+
+  <h2>Need to learn about...</h2>
+
+  <ul>
+    <li>Controller updates scope: Controllers + Scopes
+    <li>Data-binding: `$digest()`
+    <li>`ng-click`: directives
+  </ul>
+
+  <script type=cs code-example>
+    <div ng-controller=clicking>
+      <button ng-click=clicked()>Click me</button>
+      <p>You've clicked the button {{counter.clicks}} times.</p>
+    </div>
+  </script>
+
+  <div class=code-sample><code>module.controller('clicking',function($scope) {
+  $scope.counter = {clicks: 0};
+  $scope.clicked = function() {
+    $scope.counter.clicks += 1;
+  }
+})
+  </code></div>
+
+</section>
+
+<section data-markdown><script type="text/template">
+
+  ## Breaking it down
+
+  - `ng-click` directive, not onclick
+  - Angular expression evaluated against a new `Scope`
+  - `ng-click` runs expression inside an `$apply`, which triggers a `$digest()`
+
+  ```
+  // inside ng-click directive source
+  scope.$apply(function() {
+    clickHandler(scope, {$event: event});
+  });
+  ```
+
+  - inside the `$digest()`, the watch expression from `{{click}}` will fire, updating the DOM!
+  - `ng-controller` directive creates a new scope
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Controller
+
+  - glue between models, services etc, and view
+  - has access to scope, not DOM
+  - here, we've written a method for view to call:
+
+  ```
+  module.controller('clicking',function($scope) {
+    $scope.clicks = 0;
+    $scope.clicked = function() {
+      $scope.clicks += 1;
+    }
+  })
+  ```
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Controllers DO
+
+  - define functions for view to invoke
+  - trigger code from services
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Controllers DON'T
+
+  - talk about the DOM
+  - read from the scope (write-only)
+
+</script></section>
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  # Let's have a go!
+
+  - exercises/controllers-scopes
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Scopes
+
+  - core of data-binding
+  - an object to bind to
+  - have parent/child relationships
+  - used by controller/view/directives
+  - we have one `$rootScope`
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## Scopes inheritance
+
+  - scopes prototypically inherit from parents
+  - this makes for intuative cooperation between controllers
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Digest loop
+
+  - data-binding is all about scopes
+  - `$digest()` is a `Scope` method
+  - properties on scopes are what we bind to
+  - we use watch expressions - JS functions or ng expressions - to bind
+  - when value of expression changes, we update bindings
+  - digest triggered by Angular, usually
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+
+  ## `$digest()`?
+
+  - digest evaluates all watch expressions/functions against current value of scope
+  - has kept old results of all watches
+  - if they change, will fire handlers
+  - directive's handlers are often for updating DOM
+  - e.g ng-repeat on new item
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+
+  ## `$digest()`
+
+  ```
+  angular.injector(["ng"]).invoke(function($rootScope) {
+
+    var scope = $rootScope.$new();
+    scope.on = true;
+    scope.$watch("on",function(on) {
+      console.log("lightbulb now: " + (on ? "on" : "off"))
+    });
+    // nothing happens, digest hasn't been called
+    scope.on = false;
+    scope.on = true;
+    scope.on = false;
+    // will trigger
+    scope.$digest()
+    // triggers again, $apply = do then digest
+    scope.$apply(function() {
+      scope.on = true;
+    });
+
+  });
+  ```
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  ## ng-world, JS-world
+
+  - if we make changes to scope outside of Angular's world we'll need to tell Angular
+  - e.g AJAX callback, non-Angular event callback
+  - when writing your own directives
+  - reading Angular directive's source is great way of answer "how do I do X?"
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Using scopes correctly
+
+  - don't bind directly to scope properties (useful in demos tho...)
+  - create an object to hold props to be bound to
+  - why?
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Propotypical inheritance
+
+  - if a child scope updates a property you'll lose reference to parent's value
+  - use objects to share properties between scopes
+
+  ```
+  var scopeA = {
+    onScope: "foo", 
+    obj: {onObj: "bar"}
+  };
+  var scopeB = Object.create(scopeA)
+  scopeB.onScope // 'foo'
+  scopeA.onScope = 'bar'
+  scopeB.onScope // 'bar'
+  scopeB.onScope = 'qux'
+  scopeB.onScope // 'qux'
+  scopeA.onScope // 'bar'
+  // we lost link - scopeB now has its own 'onScope' property
+
+  scopeB.obj.onObj = 'zoo'
+  scopeB.obj.onObj  // what'll it be?
+  scopeA.obj.onObj  // and here?
+  ```
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  # Let's try that out
+
+  - exercises/tricky-scopes
+
+
+</script></section>
+
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  ## Other nice bits of Angular
+
+  - Filtering output
+  - Routing
+  - JSON APIs
+
+</script></section>
+
+
+
+<section>
+  
+  <h2>Filters</h2>
+
+  <ul>
+  <li>quick, declarative transformation of output
+  <li>works with data-binding
+  <li>pure: take data in, return new version
+  </ul>
+
+  <script type=cs code-sample>
+    <p>Unfiltered: '{{val}}', filtered: '{{val|uppercase}}'</p>
+    <input ng-model=val ng-init='val = "foo"'>
+  </script>
+
+</section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## Routes
+
+  - trio of modules - `location`, `route`, `routeParams`
+  - we define routes via `$routeProvider`
+  - we control how URL works via $locationProvider (e.g pushState vs hash)
+  - our controllers can see current route's params via `$routeParams`
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## `routeProvider`
+
+  ```
+  app.config(function($routeProvider) {
+    $routeProvider
+      .when("/item/:id",{
+        templateUrl: "/tpls/show.html",
+        controller: "showCtrl"
+      })
+      // ... more roots
+  });
+  ```
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## `location`
+
+  ```
+  app.config(function($locationProvider) {
+    $locationProvider.html5Mode(true);
+  });
+  ```
+
+</script></section>
+
+
+
+
+<section data-markdown><script type="text/template">
+  
+  ## `routeParams`
+
+  ```
+  $routeProvider
+  .when("/item/:id",{
+    templateUrl: "/tpls/show.html",
+    controller: "showCtrl"
+  })
+  ```
+
+  - How do we access params?
+
+  ```
+  app.controller("drawingCreateCtrl",function($scope,$routeParams) {
+      routeParams.id
+      // use any params defined in route config
+  })
+
+  ```
+
+</script></section>
+
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  # Let's use them
+
+  - exercises/routes
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  # You just met some services!
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## Services
+
+  - unit of functionality
+  - defined on modules
+  - all singletons
+  - have 3 steps: create provider, create factory, create instance via factory
+  - 3 steps are to allow configuration before factory, and then to inject instance's dependencies
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## `angular.module()`
+
+  - Angular's modules group related functionality
+  - don't use to group by type - e.g `angular.module("controllers")`
+  - not a module-loader, like RequireJS, but a module system
+  - can depend on other modules - you'll often depend on `ngRoute` for instance
+  - angular is bootstrapped by `ng-init="someModule"`, or `angular.bootstrap(["someModule"])`, passing the modules that define controllers etc found on elements
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## Why the complexity?
+
+  - One of Angular's goals is radical testability
+  - Having all dependencies of providers and instances controllable provides testability
+  - Contentious - I'd be interested to see what pure-JS could provide
+  - not supposed to change how you write your JS code (e.g singletons)
+  - Just use to get your code into Angular
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## `constant`, `value`
+
+  - simple values
+  - `constant`s can't have dependencies, values can
+
+  ```
+  app.constant("MINUTE",60 * 1000);
+  app.value("someValue",function(otherModule) {
+    return otherModule.something() + 10;
+  });
+  ```
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## `factory`, `service`
+
+  - provide functionality - normal JS objects and methods
+  - both singletons
+  - the function you pass is used to create that singleton 
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## `factory()`
+
+  - `factory`: your function's return value is the singleton
+
+  ```
+  app.factory("errorHandling",function($log /*, other deps */) {
+    return {
+      error: function(msg) {
+        $log.error(msg)
+      }
+    }
+  })
+  ```
+
+  - so here we should have a `.error()` method exposed on our singleton
+
+  ```
+  app.factory("othermodule",function(errorHandling) {
+    errorHandling.error("something")
+  })
+  ```
+  
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## `service()`
+
+  - the result of calling `new yourFunction(dep1,dep2...)` is the singleton
+
+  ```
+  app.service("errorHandling",function($log /*, other deps */) {
+    this.error = function(msg) {
+      $log.error(msg)
+    }
+  })
+  ```
+
+  - again, we'll have a `.error()` method exposed on our singleton
+
+  ```
+  app.factory("othermodule",function(errorHandling) {
+    errorHandling.error("something")
+  })
+  ```
+
+</script></section>
+  
+<section data-markdown><script type="text/template">
+  
+  ## `factory` vs `service`: FIGHT
+
+  - so: `factory` for returned things, `service` for constructors taking Angular arguments
+  - wrapping normal JS libraries: normally use `factory`
+  - other JS doesn't take angular dependencies as constructor args
+
+</script></section>
+
+  
+<section data-markdown><script type="text/template">
+  
+  ## Constructors in your code?
+
+  - Absolutely!
+  - make a `factory()` that returns the class (or classes)
+  - service is level your types have dependencies
+  - create classes like normal
+  - DON'T go mad and make everything singletons!
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## `provide()`
+
+  - the root method is `provide` - it has an additional step to allow configuration of the provider (which creates our factory)
+  - so the rest are sugar for provide
+  - provide returns a config object with, at minimum, `$get`
+  - use when you have extra config to perform/expose
+
+</script></section>
+
+
+
+<section data-markdown><script type="text/template">
+  
+  ## How does the magic work?
+
+  - how does Angular know to give right module?
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Magic circle explusion
+
+  - parses our function as a string! (really)
+  - minification will break, can be specific
+
+  ```
+  var hasDeps = function($log) {
+  }
+  var src = hasDeps.toString() // function($log) {}
+  var deps = depsRexp.exec(src)
+  // we have our dependencies!
+  ```
+  ```
+  var hasDeps = function($log) {
+  }
+  hasDeps.$inject = ['$log']
+
+  uglify(hasDeps + "") // function(a) {}, but will still work!
+  ```
+
+</script></section>
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  ## Magic defeated! Time for... more magic!
+
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Directives
+
+  - The big USP of angular
+  - Extend the DOM
+  - As simple as preventing default click-behaviour on `a href=''`
+  - To whole new widgets, with their own hierarchy of controllers
+
+</script></section>
+
+
+<section>
+  
+  <h2>Directives in DOM</h2>
+
+  <ul>
+    <li>Can be triggered in many ways: element names (IE9+), classes, attributes, etc
+    <li>Can lock down triggers per directive
+    <li>e.g `a` directive only available as element name, so augments all `a`s
+  </ul>
+
+  <script type=cs code-example>
+  app.directive("myDirective",function() {});
+
+  <my-directive></my-directive>
+  <div my-directive></div>
+  <div class="my-directive"></div>
+  <div data-my-directive></div>
+  </script>
+
+</section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## Directives in Angular
+
+  - All the cool bits are from directives
+  - `ngRepeat`, `ngInclude`, `ngClick` etc all directives
+  - So no magic: all tools available to `ng` is available to you
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  # Let's make one!
+
+  - your-app/js/back-button.js
+  - goal: 'semantic back', not based on browser history
+  - per controller definition of what back means for them
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  # What about HTTP?
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  ## Two options
+
+  - `$http` - low-level, direct API
+  - `$resource` - JSON-record, for RESTful APIs
+  - both use promises: too much to go into, but:
+
+  ```
+  resource.get({error:err,success:done});
+  resource.get().then(done,err);
+  ```
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## `$resource`
+
+  - boiler-plate reduction for HTTP APIs
+  - one of the many flavours of REST by default
+  - gives you a constructor for instances, and static query methods
+  - return empty instances - `{}` or `[]` - for easy data-binding
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## `$resource` in use
+
+  ```
+  $scope.users = Users.query()
+  // can now use in 'ng-repeat="user in users"'
+  $scope.user = new User()
+  $scope.user.id = 15
+  $scope.user.get();
+  ```
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## `$resource` configuration
+
+  - configure a specific `$resource`
+  - can do lower-level config via same params as `$http`
+
+  ```
+  var User = $resource("/api/user/:id",{id: '@id'},{
+    'query':  {method:'GET', isArray:true, url: "/api/users"},
+    'create':  {method:'POST', url: "/api/users"},
+  })
+  ```
+
+</script></section>
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  ## No tests?!
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Testing
+
+  - unit testing: isolation
+  - end to end testing: integration/functional
+  - this is where dependency-injection comes in handy!
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## Unit tests
+
+  - test one unit of functionality in isolation
+  - stub out dependencies for speed/simplicity of testing
+
+  ```
+  var app = angular.module("app",[]);
+  app.filter("first",function(xs) { return xs[0] });
+  describe("myFilter",function() {
+    beforeEach(module("app"))
+    it("should only return first",inject(function(first) {
+      expect(first("hello")).toEqual("h");
+    })
+  })
+  ```
+
+</script></section>
+
+<section data-markdown><script type="text/template">
+  
+  ## `module()`
+
+  - sets up injector to include module(s)
+  - or to stub dependencies
+
+  ```
+  module("app")
+  module(function($provide) {
+    $provide.value("something",override);
+  })
+  ```
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## `inject()`
+
+  - runs function with dependencies taken from module(s)
+
+</script></section>
+
+
+<section data-markdown><script type="text/template">
+  
+  ## End-to-end
+
+  - kicks off app with an overridden ng-init
+  - you write real user interatctions via Javascript
+  - has CSS and other matchers to verify app worked
+  - mock out `$http` (probably)
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  ## Let's build it out!
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+  
+  # That's a wrap!
+
+</script></section>
+
+
+<section data-markdown data-state=highlight><script type="text/template">
+
+  ## Thanks!
+
+  <br />
+  <br />
+  <br />
+
+  ### @timruffles
+  ### ask for SidekickJS beta + discount :)
+
+</script></section>
+
+
+</div>
+</div>
+
+<script src="angular.js"></script>
+<script src="demo.js"></script>
+<script src="reveal/lib/js/head.min.js"></script>
+<script src="reveal/js/reveal.min.js"></script>
+<script>
+  Reveal.initialize({
+
+    // Display controls in the bottom right corner
+    controls: false,
+
+    // Display a presentation progress bar
+    progress: true,
+
+    // Push each slide change to the browser history
+    history: true,
+
+    // Enable keyboard shortcuts for navigation
+    keyboard: true,
+
+    // Enable the slide overview mode
+    overview: true,
+
+    // Vertical centering of slides
+    center: false,
+
+    // Loop the presentation
+    loop: false,
+
+    // Change the presentation direction to be RTL
+    rtl: false,
+
+    // Number of milliseconds between automatically proceeding to the
+    // next slide, disabled when set to 0, this value can be overwritten
+    // by using a data-autoslide attribute on your slides
+    autoSlide: 0,
+
+    // Enable slide navigation via mouse wheel
+    mouseWheel: false,
+
+    // Apply a 3D roll to links on hover
+    rollingLinks: false,
+
+    // Transition style
+    transition: 'linear', // default/cube/page/concave/zoom/linear/fade/none
+
+    dependencies: [
+        // Cross-browser shim that fully implements classList - https://github.com/eligrey/classList.js/
+        { src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+
+        // Interreveal/pret Markdown in <section> elements
+        { src: 'reveal/plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'reveal/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+
+        // Syntareveal/x highlight for <code> elements
+        { src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+
+        // Zoom reveal/in and out with Alt+click
+        { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+
+        // Speakreveal/er notes
+        { src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+
+        // Remotreveal/e control your reveal.js presentation using a touch device
+        // { src: 'reveal/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+    ]
+
+  });
+  
+</script>
+</body>
+</html>
