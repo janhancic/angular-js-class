@@ -1,12 +1,21 @@
-var app = angular.module("exercise",["ngRoute"]);
+var app = angular.module( 'exercise', [ 'ngRoute' ] );
+
+app.controller( 'showCtrl', function ( $scope, $routeParams ) {
+	$scope.pageName = $routeParams.pageName || 'root';
+} );
 
 app.config(function($locationProvider) {
-  // won't work for file://
-  // $locationProvider.html5Mode(true);
+	// won't work for file://
+	// $locationProvider.html5Mode(true);
 });
 
-app.config(function($routeProvider) {
-  // we'd like to define 3 routes for the /, b and c paths
-  // - how can we do that?
-});
-
+app.config( function ( $routeProvider ) {
+	$routeProvider
+		.when(
+			'/:pageName?',
+			{
+				template: 'Hello <strong>{{ pageName }}</strong>',
+				controller: 'showCtrl'
+			}
+		);
+} );
