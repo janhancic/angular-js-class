@@ -22,9 +22,9 @@
 
 
         <div ng-controller=main>
-          <p>Count is: {{count}}</p>
+          <p>Count is: {{data.count}}</p>
           <div ng-controller=child>
-            <p>Count is: {{count}}</p>
+            <p>Count is: {{data.count}}</p>
             <button ng-click=increment()>Increase</button>
             <button ng-click=delayedIncrement()>Delayed Increase</button>
           </div>
