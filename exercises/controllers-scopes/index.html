@@ -18,12 +18,13 @@
 
         <h2>Your co-worker left some half finished code - can you help?</h2>
 
-        <div ng-controller=defineMe>
+        <div ng-controller="myCtrl">
         </div>
 
-        <div ng-controller=listful>
+        <div ng-controller="listful">
           <!-- something missing -->
-          <div>Only me display when nothing is here</div>
+          <div ng-hide="list.length > 0">Only me display when nothing is here</div>
+
           <p ng-repeat="item in list">
             {{ item.title }}
           </p>

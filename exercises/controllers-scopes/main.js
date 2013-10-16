@@ -1,11 +1,20 @@
-var app = angular.module("exercise",[]);
+var app = angular.module( 'exercise', [] );
 
-// we're missing a controller
+app.controller( 'myCtrl', function ( $scope ) {
 
-app.controller("listful",function($scope) {
-  // looking a bit bare
-})
+} );
 
-app.controller("tabs",function($scope) {
-  // what goes here?
-})
+app.controller( 'listful', function ( $scope ) {
+	$scope.list = [
+		{ title: 'My title' },
+		{ title: 'This is my title' }
+	];
+} );
+
+app.controller( 'tabs', function ( $scope ) {
+	$scope.tab = 'a';
+
+	$scope.showTab = function ( selected ) {
+		$scope.tab = selected;
+	}
+} );
