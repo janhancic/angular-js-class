@@ -1,20 +1,24 @@
-app.directive("backButton",function(backState,$location) {
-  return {
-    template: "<a ng-hide='location.path() == back.route' ng-href='{{ back.route }}'>{{back.name}}</a>",
-    replace: true,
-    scope: {},
-    link: function(scope,element,attrs) {
-      scope.back = backState()
-      scope.location = $location
-    }
-  };
-});
+app.directive( 'backButton', function ( backState, $location ) {
+	return {
+		replace: true,
+		template: '<a ng-hide="location.path() == state.path" href="{{ state.path }}">{{ state.title }}</a>',
+		scopre: {},
+		link: function ( scope, el, attrs ) {
+			scope.state = backState();
+			scope.location = $location;
+		}
+	};
+} );
 
-app.factory("backState",function() {
-  var back = {name: "Back", route: "/"};
-  return function(name,route) {
-    if(name == null) return back
-    back.name = name
-    back.route = route
-  };
-});
+app.factory( 'backState', function () {
+	var state = { title: 'Home', path: '/' };
+
+	return function ( title, path ) {
+		if ( title == null ) {
+			return state;
+		}
+
+		state.title = title;
+		state.path = path;
+	};
+} );
